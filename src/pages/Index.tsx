@@ -158,7 +158,7 @@ const TabButton = ({ name, icon = null, active, onClick }) => {
 // Add GeneralChat Component
 const GeneralChat = () => {
   // Define API base URL
-  const API_BASE_URL = "http://localhost:3000"; // Change this to your actual backend URL
+  const API_BASE_URL = "https://journey-dream-waver-backend.onrender.com"; // Change this to your actual backend URL
 
   const [messages, setMessages] = useState([
     {
@@ -448,7 +448,7 @@ const EmergencyContact = () => {
 
 const PhotoCaption = () => {
   // Define API base URL - adjust this based on your actual backend URL
-  const API_BASE_URL = "http://localhost:3000";
+  const API_BASE_URL = "https://journey-dream-waver-backend.onrender.com";
 
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
