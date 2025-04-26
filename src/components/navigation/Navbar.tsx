@@ -89,6 +89,8 @@ export function Navbar() {
           </Link>
         </nav>
 
+        
+
         <div className="flex items-center gap-4">
           {currentUser ? (
             <DropdownMenu>
