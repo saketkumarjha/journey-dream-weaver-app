@@ -22,18 +22,29 @@ import {
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-// AI Assistant Main Components
+// AI Assistant with fullscreen overlay when opened
 const AIAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("generalChat");
   const panelRef = useRef(null);
 
+  // Toggle assistant and control body scroll
   const toggleAssistant = () => {
-    setIsOpen(!isOpen);
+    const newIsOpen = !isOpen;
+    setIsOpen(newIsOpen);
+
+    // Prevent scrolling on the main page when assistant is open
+    if (newIsOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
   };
 
+  // Close assistant and restore body scroll
   const closeAssistant = () => {
     setIsOpen(false);
+    document.body.style.overflow = "";
   };
 
   // Handle clicks outside the panel to close it
@@ -44,7 +55,7 @@ const AIAssistant = () => {
         !panelRef.current.contains(event.target) &&
         !event.target.closest(".ai-button")
       ) {
-        setIsOpen(false);
+        closeAssistant();
       }
     };
 
@@ -54,6 +65,8 @@ const AIAssistant = () => {
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      // Restore scrolling when component unmounts
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -61,36 +74,46 @@ const AIAssistant = () => {
     <>
       {/* AI Button */}
       <button
-        className="fixed bottom-6 right-6 w-14 h-14 bg-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors z-50 ai-button"
+        className="fixed bottom-4 md:bottom-6 right-4 md:right-6 w-12 h-12 md:w-14 md:h-14 bg-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors z-50 ai-button"
         onClick={toggleAssistant}
       >
-        <Brain className="h-7 w-7 text-white" />
+        <Brain className="h-6 w-6 md:h-7 md:w-7 text-white" />
       </button>
+
+      {/* Fullscreen overlay when assistant is open */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          aria-hidden="true"
+        />
+      )}
 
       {/* AI Assistant Panel */}
       {isOpen && (
         <div
           ref={panelRef}
-          className="fixed top-0 right-0 w-1/3 h-full bg-black text-white z-40 shadow-xl overflow-y-auto transition-all duration-300 ease-in-out"
+          className="fixed top-0 right-0 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 h-full bg-black text-white z-50 shadow-xl overflow-y-auto transition-all duration-300 ease-in-out"
         >
-          <div className="p-4 h-full flex flex-col">
+          <div className="p-3 md:p-4 h-full flex flex-col">
             {/* Header with close button */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">AI Travel Assistant</h2>
+            <div className="flex justify-between items-center mb-4 md:mb-6">
+              <h2 className="text-lg md:text-xl font-bold">
+                AI Travel Assistant
+              </h2>
               <button
                 className="text-white hover:text-gray-300"
                 onClick={closeAssistant}
                 aria-label="Close panel"
               >
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5 md:h-6 md:w-6" />
               </button>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex overflow-x-auto space-x-4 mb-6 pb-2">
+            <div className="flex overflow-x-auto space-x-2 md:space-x-4 mb-4 md:mb-6 pb-2 scrollbar-thin scrollbar-thumb-gray-700">
               <TabButton
                 name="generalChat"
-                icon={<MessageSquare className="h-4 w-4 mr-1" />}
+                icon={<MessageSquare className="h-3 w-3 md:h-4 md:w-4 mr-1" />}
                 active={activeTab === "generalChat"}
                 onClick={() => setActiveTab("generalChat")}
               />
@@ -121,8 +144,8 @@ const AIAssistant = () => {
               />
             </div>
 
-            {/* Tab Content - Full height */}
-            <div className="bg-gray-900 rounded-lg p-4 flex-1 overflow-y-auto">
+            {/* Tab Content */}
+            <div className="bg-gray-900 rounded-lg p-3 md:p-4 flex-1 overflow-y-auto">
               {activeTab === "generalChat" && <GeneralChat />}
               {activeTab === "travelRecommender" && <TravelRecommender />}
               {activeTab === "emergencyContact" && <EmergencyContact />}
@@ -137,10 +160,11 @@ const AIAssistant = () => {
   );
 };
 
+// Responsive TabButton component
 const TabButton = ({ name, icon = null, active, onClick }) => {
   return (
     <button
-      className={`px-4 py-2 rounded-t-lg whitespace-nowrap flex items-center ${
+      className={`px-2 md:px-4 py-1 md:py-2 rounded-t-lg whitespace-nowrap flex items-center text-xs md:text-sm ${
         active
           ? "bg-gray-900 text-white font-medium"
           : "bg-gray-800 text-gray-400 hover:bg-gray-700"
@@ -155,7 +179,7 @@ const TabButton = ({ name, icon = null, active, onClick }) => {
   );
 };
 
-// Add GeneralChat Component
+// Add responsive GeneralChat Component
 const GeneralChat = () => {
   // Define API base URL
   const API_BASE_URL = "https://journey-dream-waver-backend.onrender.com"; // Change this to your actual backend URL
@@ -242,12 +266,12 @@ const GeneralChat = () => {
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`mb-4 ${
+            className={`mb-3 md:mb-4 ${
               msg.role === "user" ? "text-right" : "text-left"
             }`}
           >
             <div
-              className={`inline-block max-w-3/4 rounded-lg px-4 py-2 ${
+              className={`inline-block max-w-[85%] sm:max-w-[80%] rounded-lg px-3 py-2 md:px-4 md:py-2 text-sm md:text-base ${
                 msg.role === "user"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-700 text-gray-100"
@@ -258,8 +282,8 @@ const GeneralChat = () => {
           </div>
         ))}
         {loading && (
-          <div className="text-left mb-4">
-            <div className="inline-block max-w-3/4 rounded-lg px-4 py-2 bg-gray-700 text-gray-100">
+          <div className="text-left mb-3 md:mb-4">
+            <div className="inline-block max-w-[85%] sm:max-w-[80%] rounded-lg px-3 py-2 md:px-4 md:py-2 bg-gray-700 text-gray-100">
               <div className="flex space-x-2">
                 <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
                 <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse delay-75"></div>
@@ -275,7 +299,7 @@ const GeneralChat = () => {
         <div className="flex">
           <input
             type="text"
-            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-l-md text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="flex-1 px-2 py-2 md:px-4 md:py-2 text-sm md:text-base bg-gray-800 border border-gray-700 rounded-l-md text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
             placeholder="Ask me anything about your travels..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -283,7 +307,7 @@ const GeneralChat = () => {
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-md font-medium"
+            className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-md font-medium text-sm md:text-base"
             disabled={loading || !input.trim()}
           >
             Send
@@ -295,6 +319,7 @@ const GeneralChat = () => {
 };
 
 // Feature Components
+// Responsive TravelRecommender Component
 const TravelRecommender = () => {
   const [interests, setInterests] = useState("");
   const [location, setLocation] = useState("");
@@ -330,16 +355,18 @@ const TravelRecommender = () => {
 
   return (
     <div>
-      <h3 className="text-lg font-medium mb-4">Travel Recommendations</h3>
+      <h3 className="text-base md:text-lg font-medium mb-3 md:mb-4">
+        Travel Recommendations
+      </h3>
 
       <form onSubmit={handleSubmit} className="mb-4">
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
+        <div className="mb-3 md:mb-4">
+          <label className="block text-xs md:text-sm font-medium mb-1">
             Your Interests
           </label>
           <input
             type="text"
-            className="w-full px-3 py-2 bg-gray-800 rounded-md text-white"
+            className="w-full px-3 py-1 md:py-2 bg-gray-800 rounded-md text-white text-sm md:text-base"
             placeholder="Nature, adventure, food, history..."
             value={interests}
             onChange={(e) => setInterests(e.target.value)}
@@ -347,11 +374,13 @@ const TravelRecommender = () => {
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Destination</label>
+        <div className="mb-3 md:mb-4">
+          <label className="block text-xs md:text-sm font-medium mb-1">
+            Destination
+          </label>
           <input
             type="text"
-            className="w-full px-3 py-2 bg-gray-800 rounded-md text-white"
+            className="w-full px-3 py-1 md:py-2 bg-gray-800 rounded-md text-white text-sm md:text-base"
             placeholder="Italy, Tokyo, California..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
@@ -361,7 +390,7 @@ const TravelRecommender = () => {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1 md:py-2 rounded-md font-medium text-sm md:text-base"
           disabled={loading}
         >
           {loading ? "Finding Ideas..." : "Get Recommendations"}
@@ -369,15 +398,18 @@ const TravelRecommender = () => {
       </form>
 
       {suggestions && (
-        <div className="mt-4 p-4 bg-gray-800 rounded-lg whitespace-pre-line">
-          <h4 className="text-md font-medium mb-2">Your Travel Ideas:</h4>
-          <div className="text-sm text-gray-300">{suggestions}</div>
+        <div className="mt-3 md:mt-4 p-3 md:p-4 bg-gray-800 rounded-lg whitespace-pre-line">
+          <h4 className="text-sm md:text-md font-medium mb-2">
+            Your Travel Ideas:
+          </h4>
+          <div className="text-xs md:text-sm text-gray-300">{suggestions}</div>
         </div>
       )}
     </div>
   );
 };
 
+// Responsive EmergencyContact Component
 const EmergencyContact = () => {
   const [destination, setDestination] = useState("");
   const [contacts, setContacts] = useState("");
@@ -412,14 +444,18 @@ const EmergencyContact = () => {
 
   return (
     <div>
-      <h3 className="text-lg font-medium mb-4">Emergency Contacts</h3>
+      <h3 className="text-base md:text-lg font-medium mb-3 md:mb-4">
+        Emergency Contacts
+      </h3>
 
       <form onSubmit={handleSubmit} className="mb-4">
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Destination</label>
+        <div className="mb-3 md:mb-4">
+          <label className="block text-xs md:text-sm font-medium mb-1">
+            Destination
+          </label>
           <input
             type="text"
-            className="w-full px-3 py-2 bg-gray-800 rounded-md text-white"
+            className="w-full px-3 py-1 md:py-2 bg-gray-800 rounded-md text-white text-sm md:text-base"
             placeholder="Paris, Tokyo, New York..."
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
@@ -429,7 +465,7 @@ const EmergencyContact = () => {
 
         <button
           type="submit"
-          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md font-medium"
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-1 md:py-2 rounded-md font-medium text-sm md:text-base"
           disabled={loading}
         >
           {loading ? "Finding Contacts..." : "Get Emergency Info"}
@@ -437,15 +473,18 @@ const EmergencyContact = () => {
       </form>
 
       {contacts && (
-        <div className="mt-4 p-4 bg-gray-800 rounded-lg whitespace-pre-line">
-          <h4 className="text-md font-medium mb-2">Emergency Information:</h4>
-          <div className="text-sm text-gray-300">{contacts}</div>
+        <div className="mt-3 md:mt-4 p-3 md:p-4 bg-gray-800 rounded-lg whitespace-pre-line">
+          <h4 className="text-sm md:text-md font-medium mb-2">
+            Emergency Information:
+          </h4>
+          <div className="text-xs md:text-sm text-gray-300">{contacts}</div>
         </div>
       )}
     </div>
   );
 };
 
+// Responsive PhotoCaption Component
 const PhotoCaption = () => {
   // Define API base URL - adjust this based on your actual backend URL
   const API_BASE_URL = "https://journey-dream-waver-backend.onrender.com";
@@ -542,16 +581,20 @@ const PhotoCaption = () => {
   ];
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h3 className="text-lg font-medium mb-4">AI Photo Caption Generator</h3>
+    <div className="w-full mx-auto p-2 md:p-4">
+      <h3 className="text-base md:text-lg font-medium mb-3 md:mb-4">
+        AI Photo Caption Generator
+      </h3>
 
       <form onSubmit={handleSubmit} className="mb-4">
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Upload Photo</label>
+        <div className="mb-3 md:mb-4">
+          <label className="block text-xs md:text-sm font-medium mb-1">
+            Upload Photo
+          </label>
           <input
             type="file"
             accept="image/*"
-            className="w-full px-3 py-2 bg-gray-800 rounded-md text-white"
+            className="w-full px-3 py-1 md:py-2 bg-gray-800 rounded-md text-white text-sm md:text-base"
             onChange={handlePhotoChange}
             required
           />
@@ -561,18 +604,18 @@ const PhotoCaption = () => {
               <img
                 src={photoPreview}
                 alt="Preview"
-                className="h-40 rounded-md object-cover"
+                className="h-32 md:h-40 rounded-md object-cover"
               />
             </div>
           )}
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
+        <div className="mb-3 md:mb-4">
+          <label className="block text-xs md:text-sm font-medium mb-1">
             Caption Style
           </label>
           <select
-            className="w-full px-3 py-2 bg-gray-800 rounded-md text-white"
+            className="w-full px-3 py-1 md:py-2 bg-gray-800 rounded-md text-white text-sm md:text-base"
             value={captionStyle}
             onChange={(e) => setCaptionStyle(e.target.value)}
           >
@@ -584,12 +627,12 @@ const PhotoCaption = () => {
           </select>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
+        <div className="mb-3 md:mb-4">
+          <label className="block text-xs md:text-sm font-medium mb-1">
             Photo Description (Optional)
           </label>
           <textarea
-            className="w-full px-3 py-2 bg-gray-800 rounded-md text-white"
+            className="w-full px-3 py-1 md:py-2 bg-gray-800 rounded-md text-white text-sm md:text-base"
             placeholder="Briefly describe what's in the photo..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -599,7 +642,7 @@ const PhotoCaption = () => {
 
         <button
           type="submit"
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-md font-medium"
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-1 md:py-2 rounded-md font-medium text-sm md:text-base"
           disabled={loading || !photo}
         >
           {loading ? "Generating..." : "Generate Captions"}
@@ -607,50 +650,57 @@ const PhotoCaption = () => {
       </form>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-900/50 rounded-lg">
-          <p className="text-red-200">{error}</p>
+        <div className="mt-3 md:mt-4 p-3 md:p-4 bg-red-900/50 rounded-lg">
+          <p className="text-red-200 text-xs md:text-sm">{error}</p>
         </div>
       )}
 
       {captions && (
-        <div className="mt-4 p-4 bg-gray-800 rounded-lg whitespace-pre-line">
-          <h4 className="text-md font-medium mb-2">Your Captions:</h4>
-          <div className="text-sm text-gray-300">{captions}</div>
+        <div className="mt-3 md:mt-4 p-3 md:p-4 bg-gray-800 rounded-lg whitespace-pre-line">
+          <h4 className="text-sm md:text-md font-medium mb-2">
+            Your Captions:
+          </h4>
+          <div className="text-xs md:text-sm text-gray-300">{captions}</div>
         </div>
       )}
     </div>
   );
 };
 
+//Responsive HealthAndSafety Component
 const HealthAndSafety = () => {
   return (
     <div>
-      <h3 className="text-lg font-medium mb-4">Health & Safety Information</h3>
-      <p className="text-gray-300 mb-4">
+      <h3 className="text-base md:text-lg font-medium mb-3 md:mb-4">
+        Health & Safety Information
+      </h3>
+      <p className="text-xs md:text-sm text-gray-300 mb-3 md:mb-4">
         Get travel health advisories, vaccination requirements, and safety tips
         for your destination.
       </p>
 
-      <div className="p-4 bg-gray-800 rounded-lg">
-        <p className="text-sm text-gray-400">
+      <div className="p-3 md:p-4 bg-gray-800 rounded-lg">
+        <p className="text-xs md:text-sm text-gray-400">
           This feature is coming soon. Check back for updates!
         </p>
       </div>
     </div>
   );
 };
-
+// Responsive StreamingContent Component
 const StreamingContent = () => {
   return (
     <div>
-      <h3 className="text-lg font-medium mb-4">Streaming Content</h3>
-      <p className="text-gray-300 mb-4">
+      <h3 className="text-base md:text-lg font-medium mb-3 md:mb-4">
+        Streaming Content
+      </h3>
+      <p className="text-xs md:text-sm text-gray-300 mb-3 md:mb-4">
         Find movies, documentaries, and shows about your destination to prepare
         for your trip.
       </p>
 
-      <div className="p-4 bg-gray-800 rounded-lg">
-        <p className="text-sm text-gray-400">
+      <div className="p-3 md:p-4 bg-gray-800 rounded-lg">
+        <p className="text-xs md:text-sm text-gray-400">
           This feature is coming soon. Check back for updates!
         </p>
       </div>
